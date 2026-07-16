@@ -1,0 +1,402 @@
+<title>뷰스트 네이버 키워드 전략 대시보드</title>
+<style>
+  :root{
+    --bg:#e9f0f1; --surface:#ffffff; --surface-2:#f3f8f8;
+    --ink:#0c1a1d; --ink-soft:#4a5c60; --ink-faint:#7d9195;
+    --accent:#0d7c86; --accent-bright:#12a3ae; --accent-wash:#dceff0;
+    --sand:#a9762f; --sand-wash:#f3e7d3;
+    --good:#2c8467; --good-wash:#dff0e7;
+    --warn:#b3801f; --warn-wash:#f6ebd3;
+    --crit:#bb5347; --crit-wash:#f7e2de;
+    --line:#d0dedf; --line-soft:#e2ecec;
+    --shadow:0 1px 2px rgba(12,26,29,.06),0 8px 24px -12px rgba(12,26,29,.14);
+    --horizon:linear-gradient(180deg,#bfe0e3 0%,#8fc7cd 46%,#0d7c86 46%,#0a5a63 100%);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#081315; --surface:#0f1f22; --surface-2:#13272a;
+      --ink:#e7f1f1; --ink-soft:#9db1b3; --ink-faint:#6b8083;
+      --accent:#2bc0cc; --accent-bright:#4dd6e0; --accent-wash:#0f2e32;
+      --sand:#cf9a4e; --sand-wash:#2a2114;
+      --good:#4bb389; --good-wash:#12291f;
+      --warn:#d5a13b; --warn-wash:#2a2312;
+      --crit:#dd7367; --crit-wash:#2c1815;
+      --line:#22383c; --line-soft:#1a2d30;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.6);
+      --horizon:linear-gradient(180deg,#123b40 0%,#0e6b74 46%,#0a565e 46%,#06373d 100%);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#e9f0f1; --surface:#ffffff; --surface-2:#f3f8f8;
+    --ink:#0c1a1d; --ink-soft:#4a5c60; --ink-faint:#7d9195;
+    --accent:#0d7c86; --accent-bright:#12a3ae; --accent-wash:#dceff0;
+    --sand:#a9762f; --sand-wash:#f3e7d3;
+    --good:#2c8467; --good-wash:#dff0e7; --warn:#b3801f; --warn-wash:#f6ebd3;
+    --crit:#bb5347; --crit-wash:#f7e2de;
+    --line:#d0dedf; --line-soft:#e2ecec;
+    --shadow:0 1px 2px rgba(12,26,29,.06),0 8px 24px -12px rgba(12,26,29,.14);
+    --horizon:linear-gradient(180deg,#bfe0e3 0%,#8fc7cd 46%,#0d7c86 46%,#0a5a63 100%);
+  }
+  :root[data-theme="dark"]{
+    --bg:#081315; --surface:#0f1f22; --surface-2:#13272a;
+    --ink:#e7f1f1; --ink-soft:#9db1b3; --ink-faint:#6b8083;
+    --accent:#2bc0cc; --accent-bright:#4dd6e0; --accent-wash:#0f2e32;
+    --sand:#cf9a4e; --sand-wash:#2a2114;
+    --good:#4bb389; --good-wash:#12291f; --warn:#d5a13b; --warn-wash:#2a2312;
+    --crit:#dd7367; --crit-wash:#2c1815;
+    --line:#22383c; --line-soft:#1a2d30;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.6);
+    --horizon:linear-gradient(180deg,#123b40 0%,#0e6b74 46%,#0a565e 46%,#06373d 100%);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.55;
+    font-feature-settings:"tnum";
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:clamp(18px,4vw,44px) clamp(16px,4vw,40px) 72px}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* ---------- Header ---------- */
+  header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:26px}
+  .brand{display:flex;flex-direction:column;gap:6px}
+  .wordmark{font-size:clamp(30px,5.4vw,46px);font-weight:800;letter-spacing:.14em;line-height:1;color:var(--ink)}
+  .wordmark span{color:var(--accent)}
+  .brand .sub{font-size:13.5px;color:var(--ink-soft);letter-spacing:.01em}
+  .brand .loc{font-size:12px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.13em;font-weight:600}
+  .meta{text-align:right;font-size:12px;color:var(--ink-faint);letter-spacing:.04em;line-height:1.7}
+  .meta b{color:var(--ink-soft);font-weight:700}
+
+  /* ---------- Horizon summary band ---------- */
+  .horizon{position:relative;border-radius:16px;overflow:hidden;background:var(--horizon);
+    padding:26px clamp(18px,3vw,30px);margin-bottom:14px;box-shadow:var(--shadow);isolation:isolate}
+  .horizon::after{content:"";position:absolute;inset:0;background:
+    radial-gradient(120% 80% at 88% 8%,rgba(255,255,255,.28),transparent 60%);pointer-events:none;z-index:-1}
+  .horizon .eyebrow{color:rgba(255,255,255,.86);font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+  .horizon h1{margin:6px 0 2px;color:#fff;font-size:clamp(20px,3.3vw,27px);font-weight:800;text-wrap:balance;line-height:1.25;
+    text-shadow:0 1px 12px rgba(4,40,44,.35)}
+  .horizon p{margin:0;color:rgba(255,255,255,.9);font-size:14px;max-width:60ch}
+
+  /* ---------- Stat tiles ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:30px}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:15px 16px;box-shadow:var(--shadow)}
+  .tile .k{font-size:11.5px;color:var(--ink-faint);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px}
+  .tile .v{font-size:26px;font-weight:800;letter-spacing:-.01em;line-height:1;color:var(--ink)}
+  .tile .v small{font-size:14px;font-weight:700;color:var(--ink-soft);letter-spacing:0}
+  .tile .d{font-size:12px;color:var(--ink-soft);margin-top:7px}
+  .tile .d.up{color:var(--good)} .tile .d.goal{color:var(--accent)}
+
+  /* ---------- Section ---------- */
+  section{margin-top:34px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+  .sec-head h2{font-size:19px;font-weight:800;margin:0;letter-spacing:-.01em}
+  .sec-head .num{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+  .sec-sub{font-size:13px;color:var(--ink-soft);margin:0 0 18px}
+
+  /* ---------- Keyword matrix ---------- */
+  .kw-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+  .kw-scroll{overflow-x:auto}
+  table.kw{width:100%;border-collapse:collapse;min-width:620px}
+  table.kw th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);font-weight:700;
+    text-align:left;padding:13px 16px;border-bottom:1px solid var(--line)}
+  table.kw th.r,table.kw td.r{text-align:right}
+  table.kw td{padding:12px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+  table.kw tr:last-child td{border-bottom:none}
+  .kw-name{font-weight:700;font-size:14.5px;color:var(--ink);white-space:nowrap}
+  .kw-name .me{display:inline-block;margin-left:7px;font-size:10.5px;font-weight:800;color:var(--accent);
+    background:var(--accent-wash);padding:2px 6px;border-radius:5px;letter-spacing:.04em;vertical-align:middle}
+  .barwrap{display:flex;align-items:center;gap:10px;min-width:180px}
+  .bar{position:relative;height:8px;flex:1;background:var(--line-soft);border-radius:99px;overflow:hidden}
+  .bar>i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent-bright))}
+  .vol{font-weight:700;font-size:13.5px;min-width:58px;text-align:right}
+  .chip{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.02em;white-space:nowrap}
+  .chip.hi{color:var(--crit);background:var(--crit-wash)}
+  .chip.mid{color:var(--warn);background:var(--warn-wash)}
+  .chip.lo{color:var(--good);background:var(--good-wash)}
+  .tier{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:6px;letter-spacing:.02em;white-space:nowrap}
+  .tier.core{color:#fff;background:var(--accent)}
+  .tier.win{color:var(--good);background:var(--good-wash);border:1px solid color-mix(in srgb,var(--good) 30%,transparent)}
+  .tier.long{color:var(--crit);background:var(--crit-wash);border:1px solid color-mix(in srgb,var(--crit) 30%,transparent)}
+  .tier.watch{color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line)}
+
+  /* ---------- Rank strip ---------- */
+  .rank{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding:14px 16px;background:var(--surface);
+    border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow)}
+  .rank .lab{font-size:12px;font-weight:700;color:var(--ink-soft);margin-right:2px}
+  .pos{display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 11px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-soft)}
+  .pos .n{font-size:11px;font-weight:800;color:var(--ink-faint)}
+  .pos.self{background:var(--accent);border-color:var(--accent)}
+  .pos.self,.pos.self .n{color:#fff}
+  .pos .arrow{color:var(--ink-faint)}
+
+  /* ---------- Strategy cards ---------- */
+  .strat{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:800px){.strat{grid-template-columns:1fr}}
+  .scard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:11px;position:relative;overflow:hidden}
+  .scard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .scard.s1::before{background:var(--good)} .scard.s2::before{background:var(--accent)} .scard.s3::before{background:var(--crit)}
+  .scard .stage{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .scard.s1 .stage{color:var(--good)} .scard.s2 .stage{color:var(--accent)} .scard.s3 .stage{color:var(--crit)}
+  .scard h3{margin:0;font-size:16px;font-weight:800}
+  .scard .horizon-t{font-size:12px;color:var(--ink-faint);font-weight:600}
+  .scard ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+  .scard ul li{font-size:12.5px;font-weight:700;color:var(--ink);background:var(--surface-2);border:1px solid var(--line-soft);
+    padding:4px 9px;border-radius:7px}
+  .scard p{margin:2px 0 0;font-size:13px;color:var(--ink-soft);line-height:1.5}
+
+  /* ---------- Checklist ---------- */
+  .todo{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+  .todo .grp{padding:6px 4px}
+  .todo .grp-h{display:flex;align-items:center;gap:9px;padding:13px 18px 7px;font-size:12px;font-weight:800;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+  .todo .grp-h .ico{width:7px;height:7px;border-radius:2px;background:var(--accent);transform:rotate(45deg)}
+  label.item{display:flex;gap:12px;align-items:flex-start;padding:9px 18px;cursor:pointer;border-top:1px solid var(--line-soft)}
+  label.item:first-of-type{border-top:none}
+  label.item input{appearance:none;-webkit-appearance:none;margin:2px 0 0;flex:none;width:19px;height:19px;border:1.8px solid var(--line);
+    border-radius:6px;background:var(--surface-2);cursor:pointer;position:relative;transition:.15s}
+  label.item input:checked{background:var(--accent);border-color:var(--accent)}
+  label.item input:checked::after{content:"";position:absolute;left:5.5px;top:2px;width:5px;height:9px;
+    border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(42deg)}
+  label.item input:focus-visible{outline:2px solid var(--accent-bright);outline-offset:2px}
+  label.item .tx{font-size:14px;color:var(--ink);transition:.15s}
+  label.item .tx b{color:var(--accent);font-weight:700}
+  label.item input:checked ~ .tx{color:var(--ink-faint);text-decoration:line-through;text-decoration-color:var(--line)}
+  .todo-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-soft)}
+  .todo-foot .prog{font-weight:700;color:var(--accent)}
+  .todo-foot button{font:inherit;font-size:12px;font-weight:700;color:var(--ink-soft);background:transparent;border:1px solid var(--line);
+    padding:5px 11px;border-radius:8px;cursor:pointer}
+  .todo-foot button:hover{color:var(--ink);border-color:var(--ink-faint)}
+
+  footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint);line-height:1.7}
+  footer b{color:var(--ink-soft)}
+  .note{background:var(--warn-wash);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);color:var(--ink-soft);
+    border-radius:10px;padding:11px 14px;font-size:12.5px;margin-top:10px}
+  .note b{color:var(--warn)}
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="loc">제주 · 서귀포 안덕면 · 산방산 오션뷰</div>
+      <div class="wordmark">VIEW<span>ST</span> · 뷰스트</div>
+      <div class="sub">네이버 검색 키워드 순위 전략 · 대형 오션뷰 카페</div>
+    </div>
+    <div class="meta">
+      데이터 기준일 <b>2026.07.15</b><br>
+      출처 <b>네이버 검색광고·데이터랩·지역검색 API</b><br>
+      수집 연관키워드 <b class="tnum">432개</b>
+    </div>
+  </header>
+
+  <div class="horizon">
+    <div class="eyebrow">현재 위치 &amp; 목표</div>
+    <h1>산방산카페 지역노출 <span class="tnum">4위</span> — 톱3 진입까지 한 계단</h1>
+    <p>브랜드 인지도는 이미 탄탄합니다. 강점(대형·오션뷰·산방산 인접)과 정확히 맞는 키워드에 집중하면 실방문 전환이 큰 순위 상승이 가능합니다.</p>
+  </div>
+
+  <div class="stats">
+    <div class="tile">
+      <div class="k">산방산카페 현재 순위</div>
+      <div class="v tnum">4<small> / 5위권</small></div>
+      <div class="d goal">▲ 목표: 톱3 진입</div>
+    </div>
+    <div class="tile">
+      <div class="k">브랜드 블로그 노출</div>
+      <div class="v tnum">6,335<small>건</small></div>
+      <div class="d up">거의 매일 신규 후기</div>
+    </div>
+    <div class="tile">
+      <div class="k">주력키워드 월 검색량</div>
+      <div class="v tnum">7,370<small>회</small></div>
+      <div class="d">산방산+대형+오션뷰 합산</div>
+    </div>
+    <div class="tile">
+      <div class="k">즉시 확보 가능 키워드</div>
+      <div class="v tnum">5<small>개</small></div>
+      <div class="d up">경쟁 낮음 · 롱테일</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="num">01</span><h2>키워드 기회 매트릭스</h2></div>
+    <p class="sec-sub">막대 = 월 검색량(수요) · 칩 = 블로그 경쟁도(난이도) · 배지 = 공략 우선순위</p>
+    <div class="kw-card"><div class="kw-scroll">
+      <table class="kw">
+        <thead><tr>
+          <th>키워드</th><th class="r">월 검색량 &amp; 수요</th><th>경쟁도</th><th>우선순위</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="kw-name">제주카페</td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:100%"></i></div><span class="vol tnum">13,890</span></div></td>
+            <td><span class="chip hi">높음 · 48.6만건</span></td>
+            <td><span class="tier long">장기</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">서귀포카페</td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:86%"></i></div><span class="vol tnum">11,970</span></div></td>
+            <td><span class="chip hi">높음 · 59.0만건</span></td>
+            <td><span class="tier long">장기</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">산방산카페<span class="me">뷰스트</span></td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:25%"></i></div><span class="vol tnum">3,470</span></div></td>
+            <td><span class="chip hi">높음 · 15.7만건</span></td>
+            <td><span class="tier core">주력</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">중문카페</td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:19%"></i></div><span class="vol tnum">2,610</span></div></td>
+            <td><span class="chip hi">높음</span></td>
+            <td><span class="tier watch">관망</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">제주대형카페<span class="me">뷰스트</span></td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:17%"></i></div><span class="vol tnum">2,300</span></div></td>
+            <td><span class="chip hi">높음 · 24.5만건</span></td>
+            <td><span class="tier core">주력</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">제주오션뷰카페<span class="me">뷰스트</span></td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:12%"></i></div><span class="vol tnum">1,600</span></div></td>
+            <td><span class="chip hi">높음</span></td>
+            <td><span class="tier core">주력</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">서귀포오션뷰카페</td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:6.4%"></i></div><span class="vol tnum">890</span></div></td>
+            <td><span class="chip hi">높음</span></td>
+            <td><span class="tier win">확보</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">안덕면카페</td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:4%"></i></div><span class="vol tnum">560</span></div></td>
+            <td><span class="chip hi">높음 · 9.5만건</span></td>
+            <td><span class="tier win">확보</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">사계해변카페</td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:1.6%"></i></div><span class="vol tnum">220</span></div></td>
+            <td><span class="chip mid">중간</span></td>
+            <td><span class="tier win">확보</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">사계리카페</td>
+            <td class="r"><div class="barwrap"><div class="bar"><i style="width:0.9%"></i></div><span class="vol tnum">125</span></div></td>
+            <td><span class="chip lo">낮음</span></td>
+            <td><span class="tier win">확보</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div></div>
+
+    <div class="rank">
+      <span class="lab">‘산방산 카페’ 지역노출 현황</span>
+      <span class="pos"><span class="n">1</span>비밀역</span>
+      <span class="arrow">›</span>
+      <span class="pos"><span class="n">2</span>원앤온리</span>
+      <span class="arrow">›</span>
+      <span class="pos"><span class="n">3</span>인더눅</span>
+      <span class="arrow">›</span>
+      <span class="pos self"><span class="n">4</span>뷰스트</span>
+      <span class="arrow">›</span>
+      <span class="pos"><span class="n">5</span>부젤라또</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">02</span><h2>3단계 공략 전략</h2></div>
+    <p class="sec-sub">쉬운 곳부터 지표를 쌓아 빅키워드로 올라가는 순서</p>
+    <div class="strat">
+      <div class="scard s1">
+        <span class="stage">1단계 · 즉시 확보</span>
+        <h3>롱테일 초지역 키워드</h3>
+        <span class="horizon-t">기간: 지금 ~ 2주</span>
+        <ul><li>사계리카페</li><li>사계해변카페</li><li>안덕면카페</li><li>형제해안로카페</li><li>서귀포오션뷰카페</li></ul>
+        <p>경쟁 거의 없음. 블로그 글 몇 개 + 플레이스 키워드 설정만으로 1페이지 장악. 볼륨은 작지만 “진짜 방문 예정 고객”이 쓰는 말이라 전환율이 높습니다.</p>
+      </div>
+      <div class="scard s2">
+        <span class="stage">2단계 · 주력</span>
+        <h3>뷰스트 강점 키워드</h3>
+        <span class="horizon-t">기간: 2 ~ 3개월</span>
+        <ul><li>산방산카페 4위→톱3</li><li>제주대형카페</li><li>제주오션뷰카페</li></ul>
+        <p>대형·오션뷰·산방산 인접이라는 실제 강점과 정확히 일치. 여기서 이기면 실방문객이 크게 늘어납니다. 플레이스 최적화 + 리뷰가 핵심.</p>
+      </div>
+      <div class="scard s3">
+        <span class="stage">3단계 · 장기</span>
+        <h3>빅키워드 도전</h3>
+        <span class="horizon-t">기간: 3개월 ~</span>
+        <ul><li>서귀포카페</li><li>제주카페</li></ul>
+        <p>월 1만 회 이상 최대 볼륨이지만 경쟁 극심(48~59만 건). 1·2단계로 플레이스 저장·리뷰·방문 지표를 충분히 쌓은 뒤 도전합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">03</span><h2>이번 주 실행 체크리스트</h2></div>
+    <p class="sec-sub">순위에 직접 영향을 주는 순서대로 · 체크 상태는 이 브라우저에 저장됩니다</p>
+    <div class="todo">
+      <div class="grp">
+        <div class="grp-h"><span class="ico"></span>A. 네이버 스마트플레이스 — 순위 직접 영향</div>
+        <label class="item"><input type="checkbox" data-id="a1"><span class="tx">대표키워드에 <b>산방산카페·제주대형카페·오션뷰</b> 등록·보강 확인</span></label>
+        <label class="item"><input type="checkbox" data-id="a2"><span class="tx">사진 <b>50장 이상</b> (오션뷰·대형 내부·산방산 앵글·대표메뉴)</span></label>
+        <label class="item"><input type="checkbox" data-id="a3"><span class="tx">편의시설 체크: <b>주차·단체석·펫·키즈</b> 등 필터 노출 항목</span></label>
+        <label class="item"><input type="checkbox" data-id="a4"><span class="tx">‘소식’ <b>주 2~3회</b> 발행 — 글에 타깃 키워드 자연 포함</span></label>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><span class="ico"></span>B. 리뷰 — 플레이스 순위 핵심 지표</div>
+        <label class="item"><input type="checkbox" data-id="b1"><span class="tx">방문자 <b>영수증 리뷰</b> 유도 (테이블 안내·영수증 문구)</span></label>
+        <label class="item"><input type="checkbox" data-id="b2"><span class="tx">블로그 리뷰 유도 — 후기에 <b>사계해변카페·제주대형카페</b> 자연 노출</span></label>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><span class="ico"></span>C. 콘텐츠 &amp; 지표</div>
+        <label class="item"><input type="checkbox" data-id="c1"><span class="tx">블로그 글 <b>3개</b> 발행 — 사계리 / 안덕면 / 형제해안로 각 1개</span></label>
+        <label class="item"><input type="checkbox" data-id="c2"><span class="tx">SNS에서 <b>‘네이버 저장하기’</b> 유도 (저장·예약 수 = 순위 요소)</span></label>
+      </div>
+      <div class="todo-foot">
+        <span class="prog" id="prog">0 / 8 완료</span>
+        <button id="reset" type="button">체크 초기화</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>데이터 출처</b> · 네이버 검색광고 API(월간 검색량·경쟁도), 네이버 데이터랩(트렌드), 네이버 지역·블로그 검색 API · 기준일 2026.07.15<br>
+    <div class="note"><b>참고</b> 지역노출 순위는 네이버가 자동 순위조회를 차단하여 <b>지역검색 API 기준의 간접 지표</b>입니다. 실제 앱 플레이스 순위는 다를 수 있으니 핵심 키워드는 직접 검색으로 재확인을 권장합니다.</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var boxes=[].slice.call(document.querySelectorAll('.item input'));
+  var prog=document.getElementById('prog');
+  var KEY='viewst-todo-v1';
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){saved={}}
+  function render(){
+    var done=boxes.filter(function(b){return b.checked}).length;
+    prog.textContent=done+' / '+boxes.length+' 완료';
+  }
+  boxes.forEach(function(b){
+    var id=b.getAttribute('data-id');
+    if(saved[id])b.checked=true;
+    b.addEventListener('change',function(){
+      saved[id]=b.checked;
+      try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}
+      render();
+    });
+  });
+  document.getElementById('reset').addEventListener('click',function(){
+    boxes.forEach(function(b){b.checked=false});
+    saved={};try{localStorage.removeItem(KEY)}catch(e){}
+    render();
+  });
+  render();
+})();
+</script>
