@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>뷰스트 연간 매출 트렌드 대시보드</title>
+<style>
+:root{
+  color-scheme: light;
+  --surface-1:#fcfcfb; --page:#f9f9f7;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+  --s1:#2a78d6;               /* 시리즈 기본(blue) */
+  --seq-100:#cde2fb; --seq-200:#9ec5f4; --seq-300:#6da7ec; --seq-400:#3987e5;
+  --seq-500:#256abf; --seq-600:#184f95; --seq-700:#0d366b;
+  --gray-em:#52514e; --gray-de:#c3c2b7;
+  --up:#006300; --down:#d03b3b;
+  --wash:#eef4fc;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --surface-1:#1a1a19; --page:#0d0d0d;
+    --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --s1:#3987e5;
+    --gray-em:#c3c2b7; --gray-de:#52514e;
+    --up:#0ca30c; --down:#e66767;
+    --wash:#10233a;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,'Segoe UI',sans-serif;
+  line-height:1.55}
+.wrap{max-width:960px;margin:0 auto;padding:28px 18px 70px}
+.hd{background:linear-gradient(120deg,#0d366b,#184f95);border-radius:16px;padding:22px 26px;color:#fff;margin-bottom:18px}
+.hd .e{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.85;font-weight:700}
+.hd h1{margin:5px 0 2px;font-size:22px;font-weight:800}
+.hd .dt{opacity:.88;font-size:13px}
+h2{font-size:16px;margin:30px 0 4px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:8px;height:8px;background:var(--s1);border-radius:2px;transform:rotate(45deg)}
+.sub{font-size:12.5px;color:var(--ink2);margin:0 0 12px}
+.card{background:var(--surface-1);border:1px solid var(--ring);border-radius:13px;padding:16px 18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:16px}
+.kpi{background:var(--surface-1);border:1px solid var(--ring);border-radius:13px;padding:14px 17px}
+.kpi .k{font-size:12px;color:var(--ink2);font-weight:600}
+.kpi .v{font-size:26px;font-weight:800;margin-top:3px}
+.kpi .d{font-size:12.5px;font-weight:700;margin-top:2px}
+.kpi .d small{font-weight:500;color:var(--muted)}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--muted)}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:inherit}
+.axis-t{font-size:11px;fill:var(--muted)}
+.dlabel{font-size:11px;font-weight:700;fill:var(--ink2)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin:2px 0 10px}
+.legend .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:14px}
+.tipcard{background:var(--wash);border:1px solid var(--s1);border-left-width:4px;border-radius:11px;padding:13px 16px}
+.tipcard .t{font-size:12px;font-weight:800;color:var(--s1)}
+.tipcard .b{font-size:13.5px;margin-top:5px;line-height:1.55}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.duo{grid-template-columns:1fr}}
+.foot{margin-top:34px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.7}
+#tt{position:fixed;pointer-events:none;z-index:10;background:var(--surface-1);border:1px solid var(--ring);
+  box-shadow:0 4px 14px rgba(0,0,0,.14);border-radius:9px;padding:8px 11px;font-size:12px;display:none;max-width:230px}
+#tt .h{font-weight:800;margin-bottom:2px}
+#tt .r{color:var(--ink2)}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.tbl th{font-size:11px;color:var(--muted);text-align:right;padding:7px 9px;border-bottom:1px solid var(--grid)}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--grid)}
+.tbl tr:last-child td{border-bottom:none}
+details{margin-top:10px}
+summary{cursor:pointer;font-size:12.5px;color:var(--ink2);font-weight:600}
+</style>
+</head>
+<body>
+<div id="tt"></div>
+<div class="wrap">
+  <div class="hd">
+    <div class="e">VIEWST · 경영 분석</div>
+    <h1>연간 매출 트렌드 대시보드</h1>
+    <div class="dt">2019년 6월 개업 ~ 2026년 6월 · POS 실매출 기준 · 85개월</div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <h2>연도별 실매출</h2>
+  <p class="sub">2019년은 7개월(6월 개업), 2026년은 상반기 6개월 — 옅은 색으로 표시</p>
+  <div class="card"><div id="chYear"></div></div>
+
+  <h2>월별 매출 추이 (전 기간)</h2>
+  <p class="sub">마우스를 올리면 월별 수치가 표시됩니다</p>
+  <div class="card"><div id="chAll"></div></div>
+
+  <h2>계절성 히트맵 — 연도 × 월</h2>
+  <p class="sub">색이 진할수록 매출이 큰 달 · 1~2월과 8월이 성수기, 9월이 비수기</p>
+  <div class="card"><div id="chHeat"></div></div>
+
+  <h2>최근 3개년 월별 비교</h2>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--s1)"></span>2026</span>
+    <span><span class="sw" style="background:var(--gray-em)"></span>2025</span>
+    <span><span class="sw" style="background:var(--gray-de)"></span>2024</span>
+  </div>
+  <div class="card"><div id="chYoY"></div></div>
+
+  <h2>손님 수 vs 객단가 — 무엇이 매출을 움직였나</h2>
+  <p class="sub">연간 영수건수는 정점 대비 절반 이하로 줄었지만, 객단가는 7년째 1만9천~2만원대로 안정</p>
+  <div class="duo">
+    <div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:6px">연간 영수건수 (천 건)</div><div id="chCnt"></div></div>
+    <div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:6px">연평균 객단가 (원)</div><div id="chTicket"></div></div>
+  </div>
+
+  <h2>읽는 법 — 핵심 포인트</h2>
+  <div class="insights" id="insights"></div>
+
+  <details><summary>월별 원자료 표 보기 (85개월)</summary>
+    <div class="card" style="margin-top:8px;max-height:420px;overflow:auto"><table class="tbl" id="rawTbl"></table></div>
+  </details>
+
+  <div class="foot">데이터 출처: POS 월별 매출현황 (뷰스트 2019-2025년도 매출.xlsx, 2026-06까지) · 실매출(총매출−할인) 기준<br>
+  생성: 2026-07-23 · 갱신하려면 POS에서 월별종합을 내려받아 바탕화면 파일을 교체 후 Claude에게 "대시보드 갱신" 요청</div>
+</div>
+
+<script>
+// [연-월, 실매출(원), 영수건수]
+const M = [
+["2019-06",1998000,117],["2019-07",44453400,2345],["2019-08",64636500,3263],["2019-09",53100000,2696],["2019-10",56783300,2897],["2019-11",56220300,2870],["2019-12",66420750,3314],
+["2020-01",78825100,3759],["2020-02",58923250,2761],["2020-03",60185600,2937],["2020-04",51664000,2587],["2020-05",61204500,3070],["2020-06",66584800,3413],["2020-07",75272800,3663],["2020-08",83117900,3914],["2020-09",53454500,2796],["2020-10",61205400,3152],["2020-11",73946400,3728],["2020-12",44451500,2376],
+["2021-01",42058900,2333],["2021-02",70558500,3694],["2021-03",78313000,4114],["2021-04",84316300,4452],["2021-05",65852300,3520],["2021-06",67527700,3687],["2021-07",75867200,4048],["2021-08",78972900,4318],["2021-09",64393700,3655],["2021-10",71832100,3909],["2021-11",70705800,3678],["2021-12",63619500,3511],
+["2022-01",84161350,4437],["2022-02",97196050,4776],["2022-03",73687900,4021],["2022-04",77504500,4103],["2022-05",79740600,4116],["2022-06",76257050,3788],["2022-07",73841900,3646],["2022-08",81720550,4100],["2022-09",56508600,2904],["2022-10",67042550,3475],["2022-11",56082350,2810],["2022-12",61880850,3028],
+["2023-01",69015000,3371],["2023-02",81421750,3777],["2023-03",60553550,3116],["2023-04",56671700,2858],["2023-05",48064050,2457],["2023-06",47356700,2471],["2023-07",47377400,2455],["2023-08",57829650,2954],["2023-09",44777150,2350],["2023-10",42854700,2264],["2023-11",40548900,2170],["2023-12",50942900,2687],
+["2024-01",62584100,3107],["2024-02",61440100,2972],["2024-03",54287100,2758],["2024-04",44629100,2254],["2024-05",42855600,2276],["2024-06",40207500,2110],["2024-07",42613400,2205],["2024-08",53155200,2815],["2024-09",39618900,1974],["2024-10",39635400,2005],["2024-11",38445500,1942],["2024-12",44294500,2204],
+["2025-01",47296800,2211],["2025-02",39868100,1954],["2025-03",41622300,2029],["2025-04",37084600,1903],["2025-05",43008200,2085],["2025-06",38466300,1952],["2025-07",39332400,1981],["2025-08",41997500,2120],["2025-09",31825200,1685],["2025-10",39994100,2034],["2025-11",38857000,1959],["2025-12",43517500,2309],
+["2026-01",46733500,2246],["2026-02",46873000,2235],["2026-03",39986500,2004],["2026-04",39038500,1960],["2026-05",39793000,2042],["2026-06",39910000,2140]
+];
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmtEok = w => (w/1e8).toFixed(2).replace(/\.?0+$/,'')+'억';
+const fmtMan = w => Math.round(w/1e4).toLocaleString('ko-KR')+'만원';
+const fmtN = n => n.toLocaleString('ko-KR');
+const pct = (a,b) => (a/b-1)*100;
+const fmtPct = p => (p>0?'+':'')+p.toFixed(1)+'%';
+
+// 연도 집계
+const years = {};
+M.forEach(([ym,net,rc])=>{ const y=ym.slice(0,4); (years[y]=years[y]||{net:0,rc:0,m:0}); years[y].net+=net; years[y].rc+=rc; years[y].m++; });
+const YR = Object.keys(years).sort();
+
+// ---------- KPI ----------
+const h1 = y => M.filter(([ym])=>ym.slice(0,4)==y && +ym.slice(5)<=6).reduce((a,[,n,r])=>({net:a.net+n,rc:a.rc+r}),{net:0,rc:0});
+const h26=h1('2026'), h25=h1('2025');
+const t26=h26.net/h26.rc, t25=h25.net/h25.rc;
+const kpiData = [
+  {k:'2026 상반기 실매출', v:fmtEok(h26.net), d:fmtPct(pct(h26.net,h25.net))+' 전년 상반기 대비', cls:pct(h26.net,h25.net)>=0?'up':'down', note:'2022년 이후 첫 반등'},
+  {k:'2026 상반기 손님 수', v:fmtN(h26.rc)+'건', d:fmtPct(pct(h26.rc,h25.rc))+' 전년 대비', cls:pct(h26.rc,h25.rc)>=0?'up':'down'},
+  {k:'2026 상반기 객단가', v:Math.round(t26).toLocaleString()+'원', d:fmtPct(pct(t26,t25))+' 전년 대비', cls:pct(t26,t25)>=0?'up':'down'},
+  {k:'2025 연매출', v:fmtEok(years['2025'].net), d:fmtPct(pct(years['2025'].net,years['2024'].net))+' 전년 대비', cls:'down'}
+];
+document.getElementById('kpis').innerHTML = kpiData.map(x=>
+  `<div class="kpi"><div class="k">${x.k}</div><div class="v">${x.v}</div>
+   <div class="d ${x.cls}">${x.d}${x.note?` <small>· ${x.note}</small>`:''}</div></div>`).join('');
+
+// ---------- 공용 툴팁 ----------
+const tt = document.getElementById('tt');
+function showTT(html,ev){ tt.innerHTML=html; tt.style.display='block';
+  const x=Math.min(ev.clientX+14, innerWidth-tt.offsetWidth-8), y=Math.min(ev.clientY+14, innerHeight-tt.offsetHeight-8);
+  tt.style.left=x+'px'; tt.style.top=y+'px'; }
+function hideTT(){ tt.style.display='none'; }
+
+const NS='http://www.w3.org/2000/svg';
+function svgEl(tag,attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs)e.setAttribute(k,attrs[k]); return e; }
+
+// ---------- 1. 연도별 실매출 ----------
+(function(){
+  const W=900,H=300,L=46,R=10,T=26,B=34, pw=W-L-R, ph=H-T-B;
+  const max=9.5e8;
+  const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`});
+  for(let g=0;g<=4;g++){ const v=g*2.5e8, y=T+ph-(v/max)*ph;
+    svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:y,y2:y,stroke:'var(--grid)','stroke-width':1}));
+    const t=svgEl('text',{x:L-8,y:y+4,'text-anchor':'end',class:'axis-t'}); t.textContent=(v/1e8).toFixed(1)+'억'; svg.appendChild(t); }
+  const bw=pw/YR.length;
+  YR.forEach((y,i)=>{
+    const d=years[y], partial=d.m<12;
+    const h=(d.net/max)*ph, x=L+i*bw+bw*0.18, w=bw*0.64, yy=T+ph-h;
+    const bar=svgEl('path',{d:`M${x},${T+ph} L${x},${yy+4} Q${x},${yy} ${x+4},${yy} L${x+w-4},${yy} Q${x+w},${yy} ${x+w},${yy+4} L${x+w},${T+ph} Z`,
+      fill: partial?'var(--seq-200)':'var(--s1)'});
+    bar.style.cursor='default';
+    bar.addEventListener('mousemove',ev=>showTT(
+      `<div class="h">${y}년${partial?` (${d.m}개월)`:''}</div>
+       <div class="r">실매출 ${fmtEok(d.net)}</div><div class="r">영수건수 ${fmtN(d.rc)}건</div>
+       <div class="r">객단가 ${Math.round(d.net/d.rc).toLocaleString()}원</div>`,ev));
+    bar.addEventListener('mouseleave',hideTT);
+    svg.appendChild(bar);
+    const lb=svgEl('text',{x:x+w/2,y:yy-7,'text-anchor':'middle',class:'dlabel'}); lb.textContent=fmtEok(d.net); svg.appendChild(lb);
+    const xt=svgEl('text',{x:x+w/2,y:T+ph+18,'text-anchor':'middle',class:'axis-t'});
+    xt.textContent=y+(partial?'*':''); svg.appendChild(xt);
+  });
+  svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:T+ph,y2:T+ph,stroke:'var(--axis)','stroke-width':1}));
+  document.getElementById('chYear').appendChild(svg);
+})();
+
+// ---------- 2. 월별 전체 추이 ----------
+(function(){
+  const W=900,H=320,L=46,R=12,T=20,B=44, pw=W-L-R, ph=H-T-B;
+  const max=1.0e8;
+  const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`});
+  // 구간 배경 주석
+  const eras=[["2020-01","2022-12","코로나 제주 특수"],["2023-01","2025-12","조정기"],["2026-01","2026-06","안정화"]];
+  const xi = ym => M.findIndex(m=>m[0]===ym);
+  const X = i => L + (i/(M.length-1))*pw;
+  eras.forEach(([a,b,name],k)=>{
+    const x1=X(xi(a)), x2=X(xi(b));
+    if(k%2===0){ svg.appendChild(svgEl('rect',{x:x1,y:T,width:x2-x1,height:ph,fill:'var(--wash)',opacity:.55})); }
+    const t=svgEl('text',{x:(x1+x2)/2,y:T+14,'text-anchor':'middle',class:'axis-t','font-weight':700}); t.textContent=name; svg.appendChild(t);
+  });
+  for(let g=0;g<=4;g++){ const v=g*2.5e7, y=T+ph-(v/max)*ph;
+    svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:y,y2:y,stroke:'var(--grid)','stroke-width':1}));
+    const t=svgEl('text',{x:L-8,y:y+4,'text-anchor':'end',class:'axis-t'}); t.textContent=(v/1e6)+'백만'; svg.appendChild(t); }
+  const Y = v => T+ph-(v/max)*ph;
+  let dArea=`M${X(0)},${T+ph}`, dLine='';
+  M.forEach((m,i)=>{ const p=`${X(i)},${Y(m[1])}`; dArea+=` L${p}`; dLine+=(i?' L':'M')+p; });
+  dArea+=` L${X(M.length-1)},${T+ph} Z`;
+  svg.appendChild(svgEl('path',{d:dArea,fill:'var(--seq-100)',opacity:.7}));
+  svg.appendChild(svgEl('path',{d:dLine,fill:'none',stroke:'var(--s1)','stroke-width':2,'stroke-linejoin':'round'}));
+  // 연도 눈금
+  YR.forEach(y=>{ const i=xi(y+'-01'); if(i<0)return; const x=X(i);
+    svg.appendChild(svgEl('line',{x1:x,x2:x,y1:T+ph,y2:T+ph+4,stroke:'var(--axis)'}));
+    const t=svgEl('text',{x:x,y:T+ph+18,'text-anchor':'middle',class:'axis-t'}); t.textContent=y; svg.appendChild(t); });
+  svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:T+ph,y2:T+ph,stroke:'var(--axis)','stroke-width':1}));
+  // 크로스헤어
+  const ch=svgEl('line',{x1:0,x2:0,y1:T,y2:T+ph,stroke:'var(--muted)','stroke-width':1,'stroke-dasharray':'3 3',visibility:'hidden'});
+  const dot=svgEl('circle',{r:4,fill:'var(--s1)',stroke:'var(--surface-1)','stroke-width':2,visibility:'hidden'});
+  svg.appendChild(ch); svg.appendChild(dot);
+  const hit=svgEl('rect',{x:L,y:T,width:pw,height:ph,fill:'transparent'});
+  hit.addEventListener('mousemove',ev=>{
+    const r=svg.getBoundingClientRect(), fx=(ev.clientX-r.left)*(W/r.width);
+    const i=Math.max(0,Math.min(M.length-1,Math.round((fx-L)/pw*(M.length-1))));
+    const [ym,net,rc]=M[i];
+    ch.setAttribute('x1',X(i)); ch.setAttribute('x2',X(i)); ch.setAttribute('visibility','visible');
+    dot.setAttribute('cx',X(i)); dot.setAttribute('cy',Y(net)); dot.setAttribute('visibility','visible');
+    const prev=M[i-12];
+    showTT(`<div class="h">${ym.replace('-','년 ')}월</div>
+      <div class="r">실매출 ${fmtMan(net)}</div><div class="r">영수건수 ${fmtN(rc)}건</div>
+      ${prev?`<div class="r">전년 동월 대비 <b class="${net>=prev[1]?'up':'down'}">${fmtPct(pct(net,prev[1]))}</b></div>`:''}`,ev);
+  });
+  hit.addEventListener('mouseleave',()=>{ hideTT(); ch.setAttribute('visibility','hidden'); dot.setAttribute('visibility','hidden'); });
+  svg.appendChild(hit);
+  document.getElementById('chAll').appendChild(svg);
+})();
+
+// ---------- 3. 히트맵 ----------
+(function(){
+  const W=900,H=280,L=52,T=26,cw=(W-L-14)/12,chh=(H-T-8)/YR.length;
+  const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`});
+  const vals=M.map(m=>m[1]); const vmax=Math.max(...vals);
+  const ramp=['--seq-100','--seq-200','--seq-300','--seq-400','--seq-500','--seq-600','--seq-700'];
+  for(let mo=1;mo<=12;mo++){ const t=svgEl('text',{x:L+(mo-0.5)*cw,y:T-8,'text-anchor':'middle',class:'axis-t'}); t.textContent=mo+'월'; svg.appendChild(t); }
+  YR.forEach((y,r)=>{
+    const t=svgEl('text',{x:L-8,y:T+r*chh+chh/2+4,'text-anchor':'end',class:'axis-t'}); t.textContent=y; svg.appendChild(t);
+    for(let mo=1;mo<=12;mo++){
+      const ym=y+'-'+String(mo).padStart(2,'0'); const row=M.find(m=>m[0]===ym);
+      const x=L+(mo-1)*cw+1, yy=T+r*chh+1;
+      if(!row){ svg.appendChild(svgEl('rect',{x,y:yy,width:cw-2,height:chh-2,rx:3,fill:'none',stroke:'var(--grid)'})); continue; }
+      const step=Math.min(6,Math.floor(row[1]/vmax*7));
+      const cell=svgEl('rect',{x,y:yy,width:cw-2,height:chh-2,rx:3,fill:`var(${ramp[step]})`});
+      cell.addEventListener('mousemove',ev=>showTT(`<div class="h">${y}년 ${mo}월</div><div class="r">실매출 ${fmtMan(row[1])}</div><div class="r">영수건수 ${fmtN(row[2])}건</div>`,ev));
+      cell.addEventListener('mouseleave',hideTT);
+      svg.appendChild(cell);
+    }
+  });
+  document.getElementById('chHeat').appendChild(svg);
+})();
+
+// ---------- 4. 최근 3개년 비교 ----------
+(function(){
+  const W=900,H=300,L=46,R=56,T=16,B=30, pw=W-L-R, ph=H-T-B;
+  const max=7e7;
+  const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`});
+  for(let g=0;g<=3;g++){ const v=g*2e7+1e7, y=T+ph-(v/max)*ph;
+    if(g<4){svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:y,y2:y,stroke:'var(--grid)','stroke-width':1}));
+    const t=svgEl('text',{x:L-8,y:y+4,'text-anchor':'end',class:'axis-t'}); t.textContent=(v/1e7)+'천만'; svg.appendChild(t);} }
+  const X=mo=>L+((mo-1)/11)*pw, Y=v=>T+ph-(v/max)*ph;
+  for(let mo=1;mo<=12;mo++){ const t=svgEl('text',{x:X(mo),y:T+ph+18,'text-anchor':'middle',class:'axis-t'}); t.textContent=mo+'월'; svg.appendChild(t); }
+  svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:T+ph,y2:T+ph,stroke:'var(--axis)','stroke-width':1}));
+  const series=[['2024','var(--gray-de)',2],['2025','var(--gray-em)',2],['2026','var(--s1)',3]];
+  series.forEach(([y,col,sw])=>{
+    let d=''; const pts=[];
+    for(let mo=1;mo<=12;mo++){ const row=M.find(m=>m[0]===y+'-'+String(mo).padStart(2,'0')); if(!row)break;
+      pts.push([mo,row[1],row[2]]); d+=(d?' L':'M')+X(mo)+','+Y(row[1]); }
+    svg.appendChild(svgEl('path',{d,fill:'none',stroke:col,'stroke-width':sw,'stroke-linejoin':'round'}));
+    const last=pts[pts.length-1];
+    const lb=svgEl('text',{x:X(last[0])+8,y:Y(last[1])+4,class:'dlabel',fill:col}); lb.textContent=y; lb.style.fill=col; svg.appendChild(lb);
+    pts.forEach(([mo,v,rc])=>{ const c=svgEl('circle',{cx:X(mo),cy:Y(v),r:8,fill:'transparent'});
+      c.addEventListener('mousemove',ev=>showTT(`<div class="h">${y}년 ${mo}월</div><div class="r">실매출 ${fmtMan(v)}</div><div class="r">영수건수 ${fmtN(rc)}건</div>`,ev));
+      c.addEventListener('mouseleave',hideTT); svg.appendChild(c);
+      if(y==='2026'){ svg.appendChild(svgEl('circle',{cx:X(mo),cy:Y(v),r:3.5,fill:col,stroke:'var(--surface-1)','stroke-width':2})); }
+    });
+  });
+  document.getElementById('chYoY').appendChild(svg);
+})();
+
+// ---------- 5·6. 건수 / 객단가 ----------
+function miniChart(el, getVal, fmt, {bar=true, ymin=0, ymax}={}){
+  const W=430,H=240,L=46,R=8,T=16,B=30, pw=W-L-R, ph=H-T-B;
+  const ys=YR.filter(y=>years[y].m===12);            // 완결 연도만
+  const vals=ys.map(y=>getVal(years[y]));
+  const max=ymax || Math.max(...vals)*1.15;
+  const svg=svgEl('svg',{viewBox:`0 0 ${W} ${H}`});
+  for(let g=0;g<=3;g++){ const v=ymin+(max-ymin)*g/3, y=T+ph-g/3*ph;
+    svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:y,y2:y,stroke:'var(--grid)','stroke-width':1}));
+    const t=svgEl('text',{x:L-6,y:y+4,'text-anchor':'end',class:'axis-t'}); t.textContent=fmt(v,true); svg.appendChild(t); }
+  const bw=pw/ys.length;
+  const Y=v=>T+ph-((v-ymin)/(max-ymin))*ph;
+  if(bar){
+    ys.forEach((y,i)=>{ const v=vals[i], x=L+i*bw+bw*0.2, w=bw*0.6, yy=Y(v);
+      const b=svgEl('path',{d:`M${x},${T+ph} L${x},${yy+4} Q${x},${yy} ${x+4},${yy} L${x+w-4},${yy} Q${x+w},${yy} ${x+w},${yy+4} L${x+w},${T+ph} Z`,fill:'var(--seq-300)'});
+      b.addEventListener('mousemove',ev=>showTT(`<div class="h">${y}년</div><div class="r">${fmt(v,false)}</div>`,ev));
+      b.addEventListener('mouseleave',hideTT); svg.appendChild(b);
+      const xt=svgEl('text',{x:x+w/2,y:T+ph+18,'text-anchor':'middle',class:'axis-t'}); xt.textContent="'"+y.slice(2); svg.appendChild(xt); });
+  } else {
+    let d=''; ys.forEach((y,i)=>{ d+=(d?' L':'M')+(L+i*bw+bw/2)+','+Y(vals[i]); });
+    svg.appendChild(svgEl('path',{d,fill:'none',stroke:'var(--s1)','stroke-width':2}));
+    ys.forEach((y,i)=>{ const cx=L+i*bw+bw/2, cy=Y(vals[i]);
+      svg.appendChild(svgEl('circle',{cx,cy,r:3.5,fill:'var(--s1)',stroke:'var(--surface-1)','stroke-width':2}));
+      const c=svgEl('circle',{cx,cy,r:9,fill:'transparent'});
+      c.addEventListener('mousemove',ev=>showTT(`<div class="h">${y}년</div><div class="r">${fmt(vals[i],false)}</div>`,ev));
+      c.addEventListener('mouseleave',hideTT); svg.appendChild(c);
+      const xt=svgEl('text',{x:cx,y:T+ph+18,'text-anchor':'middle',class:'axis-t'}); xt.textContent="'"+y.slice(2); svg.appendChild(xt); });
+  }
+  svg.appendChild(svgEl('line',{x1:L,x2:W-R,y1:T+ph,y2:T+ph,stroke:'var(--axis)','stroke-width':1}));
+  el.appendChild(svg);
+}
+miniChart(document.getElementById('chCnt'), d=>d.rc, (v,ax)=>ax?Math.round(v/1000)+'천':fmtN(Math.round(v))+'건', {bar:true});
+miniChart(document.getElementById('chTicket'), d=>d.net/d.rc, (v,ax)=>Math.round(v).toLocaleString()+(ax?'':'원'), {bar:false, ymin:15000, ymax:22000});
+
+// ---------- 인사이트 ----------
+const ins=[
+  ['① 매출을 움직인 건 손님 수',
+   `정점(2022년) 대비 2025년 매출은 −45%인데, 객단가는 그대로(1.96만→1.99만원)이고 영수건수가 45,204→24,222건으로 −46% 줄었습니다. 회복의 열쇠는 가격이 아니라 <b>방문객 수</b>입니다.`],
+  ['② 2026 상반기, 4년 만의 반등',
+   `상반기 실매출 ${fmtEok(h26.net)} — 전년 대비 <b class="up">${fmtPct(pct(h26.net,h25.net))}</b>. 2023년부터 이어지던 상반기 역성장(−26%→−16%→−19%)이 처음으로 멈췄습니다. 하락세가 바닥을 다진 신호로 볼 수 있습니다.`],
+  ['③ 성수기는 1~2월과 8월, 비수기는 9월',
+   `겨울(1~2월)과 여름 휴가철(8월)이 꾸준히 강하고, 9월이 매년 최저입니다(2025년 9월 3,183만원은 개업 후 최저). 9~11월 비수기 대책 — 러너스테이션 같은 신규 수요 발굴 — 이 연매출 방어의 관건입니다.`],
+  ['④ 코로나 특수의 착시 주의',
+   `2020~22년은 해외여행 제한으로 제주 전체가 특수를 누린 기간입니다. 현재 매출을 정점과 비교하기보다, 특수 이전인 2019년(7개월 3.44억, 월평균 약 4,900만원)과 비교하면 현재 월 4,000만원 수준은 완만한 하락으로 읽는 것이 타당합니다.`]
+];
+document.getElementById('insights').innerHTML = ins.map(([t,b])=>`<div class="tipcard"><div class="t">${t}</div><div class="b">${b}</div></div>`).join('');
+
+// ---------- 원자료 표 ----------
+document.getElementById('rawTbl').innerHTML =
+  '<tr><th>연-월</th><th>실매출</th><th>영수건수</th><th>객단가</th><th>전년 동월</th></tr>' +
+  [...M].reverse().map(([ym,net,rc],idx,arr)=>{
+    const prev=M[M.findIndex(m=>m[0]===ym)-12];
+    return `<tr><td>${ym}</td><td>${fmtN(net)}</td><td>${fmtN(rc)}</td><td>${Math.round(net/rc).toLocaleString()}</td>
+    <td>${prev?`<span class="${net>=prev[1]?'up':'down'}">${fmtPct(pct(net,prev[1]))}</span>`:'—'}</td></tr>`;
+  }).join('');
+</script>
+</body>
+</html>

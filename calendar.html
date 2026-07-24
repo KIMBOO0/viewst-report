@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>뷰스트 월간 운영 캘린더</title>
+<style>
+:root{color-scheme:light;
+  --surface:#fcfcfb;--page:#f9f9f7;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
+  --grid:#e1e0d9;--ring:rgba(11,11,11,.10);--accent:#2a78d6;--wash:#eef4fc;
+  --tax:#a9762f;--taxwash:#faf3e6;--hr:#4a3aa7;--hrwash:#efedfb}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --surface:#1a1a19;--page:#0d0d0d;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+  --grid:#2c2c2a;--ring:rgba(255,255,255,.10);--accent:#3987e5;--wash:#10233a;
+  --tax:#cf9a4e;--taxwash:#2a2213;--hr:#9085e9;--hrwash:#1d1a33}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;line-height:1.55}
+.wrap{max-width:860px;margin:0 auto;padding:28px 18px 60px}
+.hd{background:linear-gradient(120deg,#0d7c86,#0a5a63);border-radius:16px;padding:22px 26px;color:#fff;margin-bottom:20px}
+.hd .e{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.85;font-weight:700}
+.hd h1{margin:5px 0 2px;font-size:22px;font-weight:800}
+.hd .dt{opacity:.9;font-size:13px}
+h2{font-size:16px;margin:28px 0 12px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:8px;height:8px;background:var(--accent);border-radius:2px;transform:rotate(45deg)}
+.timeline{background:var(--surface);border:1px solid var(--ring);border-radius:13px;overflow:hidden}
+.trow{display:flex;gap:14px;padding:13px 17px;border-bottom:1px solid var(--grid);align-items:flex-start}
+.trow:last-child{border-bottom:none}
+.day{flex:0 0 58px;text-align:center;font-weight:800;font-size:14px;background:var(--wash);color:var(--accent);border-radius:9px;padding:6px 0;margin-top:2px}
+.trow.tax .day{background:var(--taxwash);color:var(--tax)}
+.trow.hr .day{background:var(--hrwash);color:var(--hr)}
+.tt{font-size:14.5px;font-weight:700}
+.tn{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:99px;margin-left:7px;vertical-align:1px}
+.badge.b-fin{background:var(--wash);color:var(--accent)}
+.badge.b-tax{background:var(--taxwash);color:var(--tax)}
+.badge.b-hr{background:var(--hrwash);color:var(--hr)}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px}
+.mo{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:12px 14px;min-height:86px}
+.mo .mh{font-size:13px;font-weight:800;color:var(--accent);margin-bottom:6px}
+.mo ul{margin:0;padding-left:16px;font-size:12.5px;color:var(--ink2)}
+.mo li{margin:3px 0}
+.mo li b{color:var(--ink)}
+.note{background:var(--wash);border:1px solid var(--accent);border-left-width:4px;border-radius:11px;padding:13px 16px;margin-top:24px;font-size:13.5px}
+.note b{color:var(--accent)}
+.foot{margin-top:28px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <div class="e">VIEWST · 운영 리듬</div>
+    <h1>월간 운영 캘린더</h1>
+    <div class="dt">반복 업무를 시스템이 먼저 알려줍니다 — 매일 08:05 카톡 리마인더 자동 발송</div>
+  </div>
+
+  <h2>매월 반복 (월간 리듬)</h2>
+  <div class="timeline">
+    <div class="trow"><div class="day">1일</div><div><div class="tt">전월 손익 정리<span class="badge b-fin">재무</span></div>
+      <div class="tn">원가 워크북 손익분석 고정비 갱신(금전출납부 계정과목별현황 조회) + 핫플패스 정산 캡처 저장</div></div></div>
+    <div class="trow"><div class="day">5일</div><div><div class="tt">SNS 게시 (상반월)</div>
+      <div class="tn">인스타 viewst.jeju · 스마트플레이스 새소식 — 초안은 Claude에게, 게시 전 대표 승인</div></div></div>
+    <div class="trow tax"><div class="day">10일</div><div><div class="tt">원천세 신고·납부<span class="badge b-tax">세무</span></div>
+      <div class="tn">급여 원천징수 — 노무법인 오름 처리 여부 확인</div></div></div>
+    <div class="trow"><div class="day">15일</div><div><div class="tt">직원회의 판매자료 갱신</div>
+      <div class="tn">판매순위(회의용) 시트 + 회의 PPT 최신화 — POS 판매량 파일 주면 Claude가 갱신</div></div></div>
+    <div class="trow"><div class="day">20일</div><div><div class="tt">SNS 게시 (하반월)</div>
+      <div class="tn">인스타 · 스마트플레이스 새소식</div></div></div>
+    <div class="trow"><div class="day">말일</div><div><div class="tt">금전출납부 월 마감<span class="badge b-fin">재무</span></div>
+      <div class="tn">은행(신한·농협)·POS 파일 내려받아 불러오기 → 자동분류 → 확정 (전날 예고 알림)</div></div></div>
+  </div>
+
+  <h2>연간 일정 (해당 월에만)</h2>
+  <div class="months">
+    <div class="mo"><div class="mh">1월</div><ul>
+      <li><b>5일</b> 근로계약서 갱신·연봉 점검</li>
+      <li><b>25일</b> 부가세 확정신고 (전년 2기분) <i>— 7일 전부터 예고</i></li></ul></div>
+    <div class="mo"><div class="mh">3 · 6 · 9 · 12월</div><ul>
+      <li><b>20일</b> 산업안전보건교육 실시 + 일지 (분기) <i>— 5일 전 예고</i></li></ul></div>
+    <div class="mo"><div class="mh">4 · 10월</div><ul>
+      <li><b>25일</b> 부가세 예정고지 납부 <i>— 3일 전 예고</i></li></ul></div>
+    <div class="mo"><div class="mh">5월</div><ul>
+      <li><b>1일</b> 종합소득세 신고기간 시작 (~5/31)</li></ul></div>
+    <div class="mo"><div class="mh">7월</div><ul>
+      <li><b>25일</b> 부가세 확정신고 (1기분) <i>— 7일 전부터 예고</i></li></ul></div>
+    <div class="mo"><div class="mh">11월</div><ul>
+      <li><b>1일</b> 법정의무교육 연내 완료 점검<br>(성희롱예방·개인정보보호·장애인 인식개선)</li></ul></div>
+  </div>
+
+  <div class="note">
+    <b>작동 방식</b> — 매일 아침 08:05, 예약작업(VIEWST-Ops-Reminder)이 이 캘린더를 확인해서
+    해당일이나 예고일이면 카카오톡(나에게 보내기)으로 알려드립니다. 해당 없는 날은 조용합니다.<br>
+    일정 추가·변경은 Claude에게 <b>"운영 캘린더에 ○○ 추가해줘"</b>라고 말하면 됩니다.
+    (규칙 파일: <code>C:\Users\A\.cafe-tools\ops-calendar.json</code>)
+  </div>
+
+  <div class="foot">뷰스트 월간 운영 캘린더 · 2026-07-23 생성 · 리마인더 기록: .cafe-tools\reports\ops-reminder-log.txt</div>
+</div>
+</body>
+</html>
